@@ -4,7 +4,7 @@
 
 -- This is setup for dual 1920x1080 monitors, with the right monitor as primary
 Config {
-    font = "xft:YaHei Consolas Hybrid:size=10:antialias=true",
+    font = "xft:YaHei Consolas Hybrid:size=11:antialias=true",
     bgColor = "#000000",
     fgColor = "#ffffff",
     position = Static { xpos = 1920, ypos = 0, width = 1920, height = 20 },
