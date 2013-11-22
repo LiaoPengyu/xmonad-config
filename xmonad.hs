@@ -49,13 +49,15 @@ myWorkspaces = ["1:term","2:web","3:code","4:media","5:vm"] ++ map show [6..9]
 -- 'className' and 'resource' are used below.
 --
 myManageHook = composeAll
-    [ className =? "Google-chrome"  --> doShift "2:web"
+    [ className =? "Terminator"  --> doShift "1:term"
+    , className =? "Google-chrome-stable"  --> doShift "2:web"
     , resource  =? "desktop_window" --> doIgnore
     , className =? "Galculator"     --> doFloat
     , className =? "Steam"          --> doFloat
     , className =? "Gimp"           --> doFloat
     , resource  =? "gpicview"       --> doFloat
     , className =? "MPlayer"        --> doFloat
+    , className =? "Emacs"          --> doShift "3:code"
     , className =? "Xchat"          --> doShift "4:media"
     , className =? "VirtualBox"     --> doShift "5:vm"
     , isFullscreen --> (doF W.focusDown <+> doFullFloat)]
