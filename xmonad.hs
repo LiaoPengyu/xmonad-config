@@ -18,6 +18,11 @@ import XMonad.Util.EZConfig(additionalKeys)
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
+-- My config
+import XMonad.Layout.SimpleFloat
+import XMonad.Layout.MultiToggle.Instances
+import XMonad.Layout.MultiToggle
+
 
 ------------------------------------------------------------------------
 -- Terminal
@@ -56,8 +61,9 @@ myManageHook = composeAll
     , className =? "Steam"          --> doFloat
     , className =? "Gimp"           --> doFloat
     , resource  =? "gpicview"       --> doFloat
-    , className =? "MPlayer"        --> doFloat
+    , className =? "Gnome-mplayer"  --> doFloat
     , className =? "Emacs"          --> doShift "3:code"
+    , className =? "Thunar"         --> doShift "4:media"
     , className =? "Xchat"          --> doShift "4:media"
     , className =? "VirtualBox"     --> doShift "5:vm"
     , isFullscreen --> (doF W.focusDown <+> doFullFloat)]
@@ -73,13 +79,19 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts (
-    Tall 1 (3/100) (2/3) |||
-    Mirror (Tall 1 (3/100) (1/2)) |||
-    tabbed shrinkText tabConfig |||
-    Full |||
-    spiral (6/7)) |||
-    noBorders (fullscreenFull Full)
+myLayout = id
+           . XMonad.Layout.NoBorders.smartBorders
+           . mkToggle (single FULL)
+           $ layouts
+    where
+      layouts = avoidStruts (
+          Tall 1 (3/100) (2/3) |||
+          Mirror (Tall 1 (3/100) (1/2)) |||
+          tabbed shrinkText tabConfig |||
+          Full |||
+          simpleFloat |||
+          spiral (6/7)) |||
+          noBorders (fullscreenFull Full)
 
 
 ------------------------------------------------------------------------
@@ -254,6 +266,11 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Restart xmonad.
   , ((modMask, xK_q),
      restart "xmonad" True)
+
+  -- Toggle fullscreen
+  , ((modMask, xK_f),
+     sendMessage $ Toggle FULL)
+
   ]
   ++
 
