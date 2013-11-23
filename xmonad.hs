@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fcontext-stack=32 #-}
+{-# LANGUAGE TypeSynonymInstances, DeriveDataTypeable, MultiParamTypeClasses #-}
 -- xmonad config used by Vic Fryzel
 -- Author: Vic Fryzel
 -- http://github.com/vicfryzel/xmonad-config
@@ -19,6 +21,67 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 -- My config
+import qualified XMonad.StackSet as W
+import Data.Char (toLower)
+import Data.Monoid (mappend)
+import Data.List (intercalate, intersperse, isSuffixOf, isPrefixOf)
+import qualified Data.Map as M (fromList)
+
+import System.Exit (exitSuccess)
+import System.Posix (sleep)
+
+import XMonad.Actions.CopyWindow
+import XMonad.Actions.CycleWS (findWorkspace, nextScreen, prevScreen, swapNextScreen, swapPrevScreen, toggleOrDoSkip, WSType(..))
+-- import XMonad.Actions.CycleWindows
+import XMonad.Actions.RotSlaves
+import XMonad.Actions.DynamicWorkspaces
+import XMonad.Actions.FloatKeys
+import XMonad.Actions.Promote
+import XMonad.Actions.UpdateFocus
+import XMonad.Actions.WindowGo
+import XMonad.Actions.WithAll
+import qualified XMonad.Actions.FlexibleResize as Flex
+
+-- import XMonad.Layout hiding ( (|||) )
+import XMonad.Layout.LayoutCombinators hiding ( (|||) )
+import XMonad.Layout.DwmStyle
+import XMonad.Layout.LayoutHints
+import XMonad.Layout.Named
+import XMonad.Layout.MultiToggle
+import XMonad.Layout.MultiToggle.Instances
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.WindowNavigation
+import XMonad.Layout.LayoutModifier ( ModifiedLayout(..) )
+
+import XMonad.Layout.GridVariants ( Grid(..) )
+import XMonad.Layout.IM
+import XMonad.Layout.OneBig
+import XMonad.Layout.MultiColumns
+import XMonad.Layout.Tabbed
+import XMonad.Layout.TwoPane
+import qualified XMonad.Layout.Magnifier as Mag
+
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.EwmhDesktops (ewmh)
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.SetWMName
+import XMonad.Hooks.UrgencyHook
+import XMonad.Hooks.InsertPosition
+import XMonad.Hooks.Place
+
+import XMonad.Prompt
+import XMonad.Prompt.AppLauncher as AL
+import XMonad.Prompt.Window
+import XMonad.Prompt.Man
+
+import XMonad.Util.EZConfig
+import XMonad.Util.NamedScratchpad
+import XMonad.Util.NamedWindows (getName)
+import XMonad.Util.Run
+import XMonad.Util.WorkspaceCompare (WorkspaceCompare, WorkspaceSort, mkWsSort, getWsIndex)
+import qualified XMonad.Layout.Magnifier as Mag
+import XMonad.Layout.LayoutModifier ( ModifiedLayout(..) )
 import XMonad.Layout.SimpleFloat
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.MultiToggle
@@ -79,9 +142,21 @@ myManageHook = composeAll
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
+
+data MyTransformers = SIDEBAR
+                    | MAG
+                    | RFULL
+  deriving (Read, Show, Eq, Typeable)
+instance Transformer MyTransformers Window where
+  transform SIDEBAR x k = k (withIM (1/5) (Const True) x) (\(ModifiedLayout _ x') -> x')
+  transform MAG x k = k (Mag.magnifiercz 1.2 x) (\(ModifiedLayout _ x') -> x')
+  transform RFULL x k = k (avoidStrutsOn [] $ noBorders Full) (const x)
+
 myLayout = id
            . XMonad.Layout.NoBorders.smartBorders
            . mkToggle (single FULL)
+           . mkToggle (single SIDEBAR)
+           . mkToggle (single MAG)
            $ layouts
     where
       layouts = avoidStruts (
@@ -93,6 +168,23 @@ myLayout = id
           spiral (6/7)) |||
           noBorders (fullscreenFull Full)
 
+-----------------------------------------------------------------------
+-- WorkSpace config
+--
+-- myMonoFont = "WenQuanYi Micro Hei Mono"
+-- mySP = defaultXPConfig
+--        {
+--        -- font = "xft:" ++ myMonoFont ++ ":pixelsize=14" ,
+--        bgColor           = "#002b36"
+--        , fgColor           = "#93a1a1"
+--        , bgHLight          = "#93a1a1"
+--        , fgHLight          = "#002b36"
+--        , borderColor       = "#2aa198"
+--        , promptBorderWidth = 1
+--        , position          = Top
+--        , height            = 22
+--        , defaultText       = []
+--        }
 
 ------------------------------------------------------------------------
 -- Colors and borders
@@ -270,6 +362,14 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Toggle fullscreen
   , ((modMask, xK_f),
      sendMessage $ Toggle FULL)
+
+  -- Toggle sidebar
+  , ((modMask, xK_s),
+     sendMessage $ Toggle SIDEBAR)
+
+  -- Toggle MAG
+  , ((modMask, xK_d),
+     sendMessage $ Toggle MAG)
 
   ]
   ++
